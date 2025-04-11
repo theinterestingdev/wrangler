@@ -25,9 +25,11 @@ import io.cdap.wrangler.api.DirectiveNotFoundException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
+import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,5 +101,46 @@ public class GrammarBasedParser implements RecipeParser {
     } catch (Exception e) {
       throw new RecipeException(e.getMessage(), e);
     }
+  }
+
+  // Visit an aggregateDirective rule
+  public RecipeToken visitAggregateDirective(DirectivesParser.AggregateDirectiveContext ctx) {
+    TokenGroup tokenGroup = new TokenGroup();
+    List<TerminalNode> columns = ctx.Column();
+    List<TerminalNode> identifiers = ctx.Identifier();
+
+    // Basic format with single aggregation
+    if (columns.size() == 2 && identifiers.size() == 3) {
+      StringBuilder aggregateSpec = new StringBuilder();
+      aggregateSpec.append(columns.get(0).getText()).append(" "); // Source column
+      aggregateSpec.append(":").append(identifiers.get(0).getText()).append(" "); // Operation
+      aggregateSpec.append(identifiers.get(1).getText()).append(" "); // Input unit
+      aggregateSpec.append(columns.get(1).getText()).append(" "); // Target column
+      aggregateSpec.append(identifiers.get(2).getText()); // Output unit
+      
+      tokenGroup.add(new Text(aggregateSpec.toString()));
+    } 
+    // Complex format with multiple aggregations
+    else if (columns.size() > 2 && identifiers.size() > 3) {
+      StringBuilder aggregateSpec = new StringBuilder();
+      
+      for (int i = 0; i < columns.size(); i += 2) {
+        if (i > 0) {
+          aggregateSpec.append(", ");
+        }
+        
+        int idxOffset = i * 3 / 2;
+        aggregateSpec.append(columns.get(i).getText()).append(" "); // Source column
+        aggregateSpec.append(":").append(identifiers.get(idxOffset).getText()).append(" "); // Operation
+        aggregateSpec.append(identifiers.get(idxOffset + 1).getText()).append(" "); // Input unit
+        aggregateSpec.append(columns.get(i + 1).getText()).append(" "); // Target column
+        aggregateSpec.append(identifiers.get(idxOffset + 2).getText()); // Output unit
+      }
+      
+      tokenGroup.add(new Text(aggregateSpec.toString()));
+    }
+    
+    RecipeToken recipe = new RecipeToken("aggregate", tokenGroup);
+    return recipe;
   }
 }

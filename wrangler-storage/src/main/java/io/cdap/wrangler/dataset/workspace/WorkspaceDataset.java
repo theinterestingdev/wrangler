@@ -37,6 +37,8 @@ import io.cdap.wrangler.proto.Namespace;
 import io.cdap.wrangler.proto.NamespacedId;
 import io.cdap.wrangler.proto.Request;
 import io.cdap.wrangler.proto.WorkspaceIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -98,6 +100,7 @@ public class WorkspaceDataset {
     .build();
   public static final String DEFAULT_SCOPE = "default";
   private final StructuredTable table;
+  private static final Logger LOG = LoggerFactory.getLogger(WorkspaceDataset.class);
 
   public WorkspaceDataset(StructuredTable table) {
     this.table = table;
@@ -108,8 +111,12 @@ public class WorkspaceDataset {
       StructuredTable table = context.getTable(TABLE_ID);
       return new WorkspaceDataset(table);
     } catch (TableNotFoundException e) {
+      LOG.warn("System table '{}' does not exist. This may cause functionality issues. " +
+              "Please check your system environment.", TABLE_ID.getName(), e);
+      // Instead of failing with an IllegalStateException, provide a more helpful error message
       throw new IllegalStateException(String.format(
-        "System table '%s' does not exist. Please check your system environment.", TABLE_ID.getName()), e);
+        "System table '%s' does not exist. Please ensure the table is created during system initialization.",
+        TABLE_ID.getName()), e);
     }
   }
 

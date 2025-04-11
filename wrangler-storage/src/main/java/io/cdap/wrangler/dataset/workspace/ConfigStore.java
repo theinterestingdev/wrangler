@@ -27,6 +27,8 @@ import io.cdap.cdap.spi.data.table.field.Field;
 import io.cdap.cdap.spi.data.table.field.FieldType;
 import io.cdap.cdap.spi.data.table.field.Fields;
 import io.cdap.wrangler.api.DirectiveConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,6 +57,7 @@ public class ConfigStore {
     .withPrimaryKeys(KEY_COL)
     .build();
   private final StructuredTable table;
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigStore.class);
 
   public ConfigStore(StructuredTable table) {
     this.table = table;
@@ -65,8 +68,11 @@ public class ConfigStore {
       StructuredTable table = context.getTable(TABLE_ID);
       return new ConfigStore(table);
     } catch (TableNotFoundException e) {
+      LOG.warn("System table '{}' does not exist. This may cause functionality issues. " +
+              "Please check your system environment.", TABLE_ID.getName(), e);
       throw new IllegalStateException(String.format(
-        "System table '%s' does not exist. Please check your system environment.", TABLE_ID.getName()), e);
+        "System table '%s' does not exist. Please ensure the table is created during system initialization.",
+        TABLE_ID.getName()), e);
     }
   }
 
