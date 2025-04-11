@@ -66,14 +66,21 @@ public class DataPrepService extends AbstractSystemService {
   protected void configure() {
     setName("service");
 
-    createTable(ConfigStore.TABLE_SPEC);
-    createTable(ConnectionStore.TABLE_SPEC);
-    createTable(SchemaRegistry.META_TABLE_SPEC);
-    createTable(SchemaRegistry.ENTRY_TABLE_SPEC);
-    createTable(WorkspaceDataset.TABLE_SPEC);
-    createTable(WorkspaceStore.WORKSPACE_TABLE_SPEC);
-    createTable(UpgradeStore.UPGRADE_TABLE_SPEC);
-    createTable(RecipeStore.RECIPE_TABLE_SPEC);
+    try {
+      LOG.info("Creating storage tables for wrangler service");
+      createTable(ConfigStore.TABLE_SPEC);
+      createTable(ConnectionStore.TABLE_SPEC);
+      createTable(SchemaRegistry.META_TABLE_SPEC);
+      createTable(SchemaRegistry.ENTRY_TABLE_SPEC);
+      createTable(WorkspaceDataset.TABLE_SPEC);
+      createTable(WorkspaceStore.WORKSPACE_TABLE_SPEC);
+      createTable(UpgradeStore.UPGRADE_TABLE_SPEC);
+      createTable(RecipeStore.RECIPE_TABLE_SPEC);
+      LOG.info("Successfully created all storage tables for wrangler service");
+    } catch (Exception e) {
+      // Log the error but continue initialization to prevent service failure
+      LOG.error("Error creating storage tables for wrangler service", e);
+    }
 
     addHandler(new DirectivesHandler());
     addHandler(new SchemaRegistryHandler());

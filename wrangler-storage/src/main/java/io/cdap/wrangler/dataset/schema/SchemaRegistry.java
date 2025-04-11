@@ -31,6 +31,8 @@ import io.cdap.wrangler.proto.Namespace;
 import io.cdap.wrangler.proto.NamespacedId;
 import io.cdap.wrangler.proto.schema.SchemaDescriptorType;
 import io.cdap.wrangler.proto.schema.SchemaEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,6 +74,8 @@ public final class SchemaRegistry  {
   private static final String ID_COL = "id";
   private final StructuredTable metaTable;
   private final StructuredTable entryTable;
+
+  private static final Logger LOG = LoggerFactory.getLogger(SchemaRegistry.class);
 
   /**
    * Columns specific to the meta table
@@ -131,8 +135,11 @@ public final class SchemaRegistry  {
       StructuredTable entryTable = context.getTable(ENTRY_TABLE_ID);
       return new SchemaRegistry(metaTable, entryTable);
     } catch (TableNotFoundException e) {
+      LOG.warn("System table '{}' does not exist. This may cause functionality issues. " +
+              "Please check your system environment.", e.getId().getName(), e);
       throw new IllegalStateException(String.format(
-        "System table '%s' does not exist. Please check your system environment.", e.getId().getName()), e);
+        "System table '%s' does not exist. Please ensure the table is created during system initialization.",
+        e.getId().getName()), e);
     }
   }
 

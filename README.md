@@ -164,6 +164,46 @@ These directives are currently available:
 | [JSON](wrangler-docs/functions/json-functions.md)                               | Functions that can be useful in transforming your data           |
 | [Types](wrangler-docs/functions/type-functions.md)                              | Functions for detecting the type of data                         |
 
+## Byte Size and Time Duration Units
+
+Wrangler now supports built-in parsing of byte size and time duration values with the following units:
+
+### Byte Size Units
+- B (bytes)
+- KB (kilobytes, 1024 bytes)
+- MB (megabytes, 1024 KB)
+- GB (gigabytes, 1024 MB)
+- TB (terabytes, 1024 GB)
+
+### Time Duration Units
+- ms (milliseconds)
+- s (seconds, 1000 ms)
+- m (minutes, 60 s)
+- h (hours, 60 m)
+
+### Aggregate Stats Directive
+
+The `aggregate-stats` directive allows you to aggregate byte sizes and time durations from source columns into target columns. This is useful for calculating totals of data sizes and time intervals.
+
+Syntax:
+```
+aggregate-stats :source_size_column :source_time_column :target_size_column :target_time_column
+```
+
+Example:
+```
+// Sample input rows:
+// Row 1: data_size="10KB", response_time="500ms"
+// Row 2: data_size="5MB", response_time="1.5s"
+// Row 3: data_size="20KB", response_time="750ms"
+
+// Directive to aggregate values:
+aggregate-stats :data_size :response_time :total_size_mb :total_time_sec
+
+// Result:
+// A single row with total_size_mb="5.03 MB" and total_time_sec="2.75s"
+```
+
 ## Performance
 
 Initial performance tests show that with a set of directives of high complexity for
@@ -174,7 +214,6 @@ rates below are specified as *records/second*.
 | -------------------- | :----------: | ---------: | -------------: | --------: |
 | High (167 Directives) |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
 | High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
-
 
 ## Contact
 

@@ -64,8 +64,14 @@ directive
     | stringList
     | numberRanges
     | properties
+    | aggregateDirective
   )*?
   ;
+
+aggregateDirective
+ : Column Identifier Identifier Column Identifier
+ | Column Identifier Identifier Column Identifier (',' Column Identifier Identifier Column Identifier)*
+ ;
 
 ifStatement
   : ifStat elseIfStat* elseStat? '}'
@@ -140,7 +146,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | ByteSize | TimeDuration
  ;
 
 ecommand
@@ -310,4 +316,20 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+
+ByteSize
+ : Number (BYTE_UNIT | 'B')
+ ;
+
+fragment BYTE_UNIT
+ : 'KB' | 'MB' | 'GB'
+ ;
+
+TimeDuration
+ : Number (TIME_UNIT | 'ms')
+ ;
+
+fragment TIME_UNIT
+ : 's' | 'm' | 'h'
  ;

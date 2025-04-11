@@ -39,6 +39,8 @@ import io.cdap.wrangler.proto.NamespacedId;
 import io.cdap.wrangler.proto.connection.Connection;
 import io.cdap.wrangler.proto.connection.ConnectionMeta;
 import io.cdap.wrangler.proto.connection.ConnectionType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -87,6 +89,8 @@ public class ConnectionStore {
     .withPrimaryKeys(NAMESPACE_COL, GENERATION_COL, ID_COL)
     .build();
 
+  private static final Logger LOG = LoggerFactory.getLogger(ConnectionStore.class);
+
   private final StructuredTable table;
 
   private ConnectionStore(StructuredTable table) {
@@ -98,8 +102,11 @@ public class ConnectionStore {
       StructuredTable table = context.getTable(TABLE_ID);
       return new ConnectionStore(table);
     } catch (TableNotFoundException e) {
+      LOG.warn("System table '{}' does not exist. This may cause functionality issues. " +
+               "Please check your system environment.", TABLE_ID.getName(), e);
       throw new IllegalStateException(String.format(
-        "System table '%s' does not exist. Please check your system environment.", TABLE_ID.getName()), e);
+        "System table '%s' does not exist. Please ensure the table is created during system initialization.",
+        TABLE_ID.getName()), e);
     }
   }
 

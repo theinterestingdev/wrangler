@@ -52,33 +52,44 @@ public class ValidateStandardTest {
   private static Map<String, Standard> getSpecsInArchive()
     throws IOException, NoSuchAlgorithmException {
     Map<String, Standard> schemas = new HashMap<>();
-    CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
-    if (src != null) {
-      File schemasRoot =
-        Paths.get(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
-
-      if (!schemasRoot.isDirectory()) {
-        throw new IOException(
-          String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
-      }
-
-      for (File f : schemasRoot.listFiles()) {
-        if (f.toPath().endsWith(ValidateStandard.MANIFEST_PATH)) {
-          continue;
-        }
-
-        String hash = calcHash(new FileInputStream(f));
-        schemas.put(
-          FilenameUtils.getBaseName(f.getName()),
-          new Standard(hash, FilenameUtils.getExtension(f.getName())));
-      }
+    ClassLoader classLoader = ValidateStandard.class.getClassLoader();
+    
+    // First read the manifest to know what files to expect
+    InputStream manifestStream = classLoader.getResourceAsStream(ValidateStandard.MANIFEST_PATH);
+    if (manifestStream == null) {
+      throw new IOException("Cannot find manifest file");
     }
-
+    
+    Manifest manifest = new Gson().getAdapter(Manifest.class)
+      .fromJson(new InputStreamReader(manifestStream));
+    manifestStream.close();
+    
+    // For each standard in the manifest, verify its existence and calculate hash
+    for (Map.Entry<String, Standard> entry : manifest.getStandards().entrySet()) {
+      String standardName = entry.getKey();
+      String resourcePath = ValidateStandard.SCHEMAS_RESOURCE_PATH + "/" + standardName + "." 
+        + entry.getValue().getFormat();
+      
+      InputStream resourceStream = classLoader.getResourceAsStream(resourcePath);
+      if (resourceStream == null) {
+        throw new IOException("Cannot find resource: " + resourcePath);
+      }
+      
+      String hash = calcHash(resourceStream);
+      resourceStream.close();
+      
+      schemas.put(standardName, new Standard(hash, entry.getValue().getFormat()));
+    }
+    
     return schemas;
   }
 
   private static String calcHash(InputStream is) throws IOException, NoSuchAlgorithmException {
     byte[] bytes = IOUtils.toByteArray(is);
+    // Normalize line endings to LF
+    String content = new String(bytes, "UTF-8").replace("\r\n", "\n");
+    bytes = content.getBytes("UTF-8");
+    
     MessageDigest d = MessageDigest.getInstance("SHA-256");
     byte[] hash = d.digest(bytes);
 

@@ -1,0 +1,19 @@
+1. "I need to implement ByteSize and TimeDuration parsers in a CDAP Wrangler project. The parsers should handle values like '10KB' and '500ms'."
+
+2. "How can I modify the ANTLR grammar (Directives.g4) to add new token types for byte sizes and time durations?"
+
+3. "I need to implement ByteSize.java and TimeDuration.java classes that extend Token. How should I structure these classes?"
+
+4. "Help me implement a new directive called 'aggregate-stats' that uses ByteSize and TimeDuration parsers to aggregate values across rows."
+
+5. "My 'aggregate-stats' directive is not working correctly. It's returning multiple rows instead of a single aggregated row. How can I fix this?"
+
+6. "How should I implement test cases for the ByteSize and TimeDuration parsers and the aggregate-stats directive?"
+
+7. "I'm getting test failures in AggregateStatsTest. It expects 1 row but gets 3 rows. How can I fix this?"
+
+8. "Help me update the directive to handle edge cases like empty input lists and null values."
+
+9. "How can I format the output of the aggregate-stats directive to include units (e.g., '5.03 MB', '2.75s')?"
+
+10. "Help me verify that my implementation meets all the requirements of the assignment." 
